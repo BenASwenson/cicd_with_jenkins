@@ -1,0 +1,6 @@
+ubuntu-xenial-16.04-clouding-console
+ubuntu-xenial-16.04-clouding-console.log
+.vagrant/
+ubuntu-xenial-16.04-clouding-console.log
+Vagrantfile
+node_module/
