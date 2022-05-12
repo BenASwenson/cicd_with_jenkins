@@ -37,4 +37,4 @@
   - Circle ci
   - Team City
   - Bamboo
-  - Git Lab
+  - Git Lab, too
