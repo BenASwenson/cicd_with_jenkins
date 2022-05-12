@@ -42,7 +42,7 @@
   - Git Lab
 
 ### Building CI
-![diagram](Jenkins.png?raw=true "Jenkins")
+![diagram](JenkinsDiagram.png?raw=true "Jenkins")
 - create a ssh connection from our localhost to github
   - generate new ssh key pair on our localhost
     - with gitbash, in our .ssh folder, enter the command: `ssh-keygen -t rsa -b 4096 -C "bswenson@globalsparta.com"
