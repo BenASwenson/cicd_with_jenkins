@@ -1,3 +1,4 @@
+
 # cicd_with_jenkins
 
 ### CICD
@@ -7,6 +8,7 @@
     - faster software builds
     - customer satisfaction by deploying on time
     - small code changes make fault isolation simpler and quicker
+    - CI test with Eng
 # Continuous Delivery (CD)
 ![diagram](continuousDelivery.png?raw=true "Continuous Integration and Continuous Delivery")
   - CD extends CI by automating the release process so we can deploy our applications at any point of time with the click of a button
