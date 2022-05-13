@@ -159,3 +159,11 @@
   - on the left hand side the job is running on the Agent Node
   - back on the middle of the page click on the link of the job
   - under 'Build History' select dropdown menu of job and select `console output`
+
+# Adding a GitHub webhook in your Jenkins Pipeline
+  - go to project repository
+  - go to `settings` in the right corner
+  - click on `webhooks`
+  - click `Add Webhooks`
+  - write the Payload URL as `http://18.130.133.97:8080/github-webhook` (this is the URL where our Jenkins is running add github-webhooki to tell GitHub that it is a webhook)
+  - testing
