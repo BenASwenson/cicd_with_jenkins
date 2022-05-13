@@ -191,4 +191,57 @@
     - run `nohup node app.js > /dev/null 2>&1 &`
 - Now the app will be available on the public ip of the EC2 instance
 
-new change test!!
+# Job 1 - commit triggers job - runs testing
+- Name: `eng110-bens-CI`
+- select `Discard old builds` + choose `3` in 'Max # of builds to keep'
+- select `GitHub project` + link https repo location
+- select `Restrict where this project can be run` => `sparta-ubuntu-node`
+- select `Git` + link GitHub repo (SSH format)
+- select your private key to unlock the repo's public key
+- Change the branch to: `*/dev`
+- Select `GitHub hook trigger`
+- Select `Provide Node & npm bin/ folder to PATH`
+- Under `Build` select `Execute shell` and provide the following commands:
+  - `cd app`
+  - `npm install`
+  - `npm test`
+- Under `Add post-build action` choose `Build other projects`
+- add next project: `eng110-bens-CI-merge`
+- `save`
+
+# Job 2 - merged to main
+- Name: `eng110-bens-CI-merge`
+- select `Discard old builds` + choose `3` in 'Max # of builds to keep'
+- select `GitHub project` + link https repo location
+- select `Restrict where this project can be run` => `sparta-ubuntu-node`
+- select `Git` + link GitHub repo (SSH format)
+- select your private key to unlock the repo's public key
+- Change the branch to: `*/dev`
+- Choose `Additional Behaviours`
+  - Name of repository: `origin`
+  - Branch to merge to: `main`
+- Under 'Post-build Actions' select `Add post-build action` choose `Build other projects`
+  - add next project: `eng110-bens-cd`
+  - Again select `Add post-build action` choose `Git Publisher`
+    - Select `Push only if build succeeds` and `Merge results`
+    - `save`
+
+# Job 3 - CD to AWS EC2
+- Name: `eng110-bens-cd`
+- Link GitHub as in previous two jobs
+- Select `SSH Agent`
+  - choose the private key to unlock the EC2 instance's public key
+- Under 'Build' select `Execute shell` and run the commands:
+
+sudo ssh -A -o "StrictHostKeyChecking=no" ubuntu@ec2-ip << EOF
+
+sudo apt-get update -y
+
+sudo apt-get upgrade -y
+
+sudo apt-get install nginx -y
+
+sudo systemctl start nginx
+
+sudo systemctl enable nginx
+
