@@ -190,3 +190,5 @@
     - run `npm install`
     - run `nohup node app.js > /dev/null 2>&1 &`
 - Now the app will be available on the public ip of the EC2 instance
+
+new change test!
