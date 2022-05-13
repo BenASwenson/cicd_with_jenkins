@@ -43,11 +43,11 @@
 
 ### Building CI
 ![diagram](JenkinsDiagram.png?raw=true "Jenkins")
-- create a ssh connection from our localhost to github
+# create a ssh connection from our localhost to github
   - generate new ssh key pair on our localhost
-    - with gitbash, in our .ssh folder, enter the command: `ssh-keygen -t rsa -b 4096 -C "bswenson@globalsparta.com"
+    - with gitbash open as administrator, in our .ssh folder, enter the command: `ssh-keygen -t rsa -b 4096 -C "bswenson@globalsparta.com"`
     - it will ask us where to save the file.  Here we enter the name of the file - `eng110_bens`
-    - we can select `enter` twice because we don't need a keyphrase
+    - we can select `enter` twice because we don't need a passphrase
     - check in the .ssh folder to be sure the key pair has been created, one private and the other with a .pub suffix 
 - go into the .pub file with `cat eng110_bens.pub`
   - copy the entire key
@@ -57,8 +57,9 @@
 - add the name of the key
 - paste the .pub key into the box
 - select `Add SSH key`
-- Github will ask you to login again
-- at this stage we might add a change to our repo and push to github just to be certain we're successfully using SSH.
+ 
+# Build first tests in Jenkins
+
 - sign in to Jenkins
   - provided url: http://18.135.28.156:8080/login?from=%2F
   - username: devopslondon
@@ -99,12 +100,17 @@
 -  click on the link of the job name
 -  on the left hand side in 'Build History' choose the arrow dropdown menu of the job number to select `Console Output` to reveal 
 -  we can carry on in this fashion for as many jobs as are needed
-- Create a ssh connection from Github to Jenkins
+  
+# Create a ssh connection from Github to Jenkins
+
+  NOTE:
+    - GitHub repo - PUBLIC KEY
+    - Jenkins - PRIVATE KEY
   - generate new ssh key pair on our localhost
-    - with gitbash, in our .ssh folder, enter the command: `ssh-keygen -t rsa -b 4096 -C "bswenson@globalsparta.com"
-    - it will ask us where to save the file.  Here we enter the name of the file - `eng110_cicd_bens`
-    - we can select `enter` twice because we don't need a keyphrase
-    - check in the .ssh folder to be sure the key pair has been created, one private and the other with a .pub suffix 
+  - with gitbash, in our .ssh folder, enter the command: `ssh-keygen -t rsa -b 4096 -C "bswenson@globalsparta.com"`
+  - it will ask us where to save the file.  Here we enter the name of the file - `eng110_cicd_bens`
+  - we can select `enter` twice because we don't need a keyphrase
+  - check in the .ssh folder to be sure the key pair has been created, one private and the other with a .pub suffix 
   - go into the .pub file with `cat eng110_cicd_bens.pub`
   - copy the entire key
   - go to github and navigate to repo where app is located
@@ -115,8 +121,8 @@
   - paste the key into the box
   - select `Add key`
   - navigate back to the repo page where the app resides
-    - select 'Code' button dropdown menu and select `HTTPS` and copy
-  - We now need to give this key to Jenkins
+  - select 'Code' button dropdown menu and select `HTTPS` and copy
+  - We now need to give this to Jenkins
 
 
   - In jenkins, select `New Item`
@@ -126,11 +132,11 @@
   - add description: building CI with github & localhost using webhooks on github
   - select checkbox `Discard old builds`
   - enter `3` for 'Max # of builds to keep'
-  - select checkbox `GitHub project`
+  - select checkbox `GitHub project` 
   - In 'Project url' enter the HTTPS url copied from GitHub
   - Now we need to utilize the Agent Node and let the job know where to run this by putting some restrictions in place
     - Under 'Office 365 Connector' select checkbox `Restrict where this project can be run`
-    - select the Agent Node name: `sparta-ubuntu-node`
+    - select the Agent Node name: `sparta-ubuntu-node` - (might need to press backspace and fiddle around with it until it recognises the label)
   - Under 'Source Code Management' select the checkbox `Git`
   - go back to GitHub repo where app is located and select the 'Code' button dropdown menu and choose `SSH` and copy 
   - go back to Jenkins and paste this SSH into `Repository URL`
@@ -161,9 +167,26 @@
   - under 'Build History' select dropdown menu of job and select `console output`
 
 # Adding a GitHub webhook in your Jenkins Pipeline
+  - Edit our build and got to `configure`
+  - Under `Build Triggers`, click `Github hook trigger for GITScm polling`.
   - go to project repository
   - go to `settings` in the right corner
   - click on `webhooks`
   - click `Add Webhooks`
-  - write the Payload URL as `http://18.130.133.97:8080/github-webhook` (this is the URL where our Jenkins is running add github-webhooki to tell GitHub that it is a webhook)
-  - testing
+  - write the Payload URL as, for example: `http://18.130.133.97:8080/github-webhook` (this is the URL where our Jenkins is running add github-webhooki to tell GitHub that it is a webhook)
+  - Click `Let me select individual events`, and select `push` and `pull`.
+  - Click `Add webhook`
+  - test your webhook by pushing a commit to your GitHub repo. This should automatically trigger the Jenkins job to run.
+
+# CICD/CDE for Jenkins
+![diagram](automation_server_jenkins.png?raw=true "Automation Server Jenkins")
+- Create a new jenkins item called bens_ci_merge
+- create a dev branch on our localhost/GitHub.
+- Git push the new change from the dev branch
+- When the tests pass, trigger the job to merge the code on dev branch to the main branch
+- Create job 3 to clone the code from the main branch and deliver it to AWS EC2 to configure the node app
+  - In order to do this, we can SSH into the EC2 instance from Jenkins to install our required dependencies
+  - navigate to the app folder
+    - run `npm install`
+    - run `nohup node app.js > /dev/null 2>&1 &`
+- Now the app will be available on the public ip of the EC2 instance
