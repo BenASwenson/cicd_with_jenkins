@@ -138,7 +138,8 @@
 
 # CICD/CDE for Jenkins
 ![diagram](automation_server_jenkins.png?raw=true "Automation Server Jenkins")
-## Job 
+
+## Job 1 to automate tests
   - Create a dev branch on our localhost/GitHub.
   - In jenkins, select `New Item`
   - enter name: `bens-continuous-integration`
