@@ -190,7 +190,7 @@
   - Under 'Post-Build-Actions' choose `Git Publisher`
     - select `Push only if build succeeds` and `merge results`
   - `save`
-  - 
+   
 ## Job 3 to copy code to EC2 and install dependencies
  - Create job 3 to clone the code from the main branch and deliver it to AWS EC2 to configure the node app
  - name: eng110-bens-cd
