@@ -203,6 +203,7 @@
 #update upgrade, run the provisioning script or install nginx to test
 #scp to copy data from github to ec2
 ```
+rsync -avz -e "ssh -o StrictHostKeyChecking=no" app ec2-54-75-45-88.eu-west-1.compute.amazonaws.com:~/.
 ssh -A -o "StrictHostKeyChecking=no" ubuntu@54.246.60.105 << EOF	
     #export DB_HOST=mongodb://54.75.96.210:27017/posts
     sudo apt-get update -y
@@ -233,5 +234,6 @@ ssh -o "StrictHostKeyChecking=no" ubuntu@ip <<EOF
     #pm2 start app.js
 EOF 
 ```
+test Jenkins
 
 
