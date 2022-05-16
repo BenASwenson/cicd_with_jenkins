@@ -186,7 +186,7 @@
   - Create a new jenkins item called bens_ci_merge
   - Choose the GitHub settings again (Discard old builds)
   - For branch, choose `*/dev`
-  - Go to `Additional Behaviours`, and add `origin` for 'Name of repository', and add `main` as 'Branch to merge to'
+  - Go to `Additional Behaviours`, choose `merge before build` and add `origin` for 'Name of repository', and add `main` as 'Branch to merge to'
   - Under 'Build Triggers' select `GitHub hook trigger for GITScm polling`
   - For 'Post-Build Actions', choose `projects to build` and select `eng110-bens-cd`
   - Under 'Post-Build-Actions' choose `Git Publisher`
@@ -197,7 +197,6 @@
  - Create job 3 to clone the code from the main branch and deliver it to AWS EC2 to configure the node app
  - name: eng110-bens-cd
  - link GitHub as in previous two jobs (select `Discard old builds` and add `3` for max)
- - Restrict where this project can be run and enter `sparta-ubuntu-node`
  - SSH Agent: select the private key to unlock the EC2 instance's public key
  - Under `Execute shell` build with the following commands:
 #ssh into ec2
@@ -234,6 +233,5 @@ ssh -o "StrictHostKeyChecking=no" ubuntu@ip <<EOF
     #pm2 start app.js
 EOF 
 ```
-test
- 
+t
 
