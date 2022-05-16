@@ -203,6 +203,7 @@
 #ssh into ec2
 #update upgrade, run the provisioning script or install nginx to test
 #scp to copy data from github to ec2
+```
 ssh -A -o "StrictHostKeyChecking=no" ubuntu@54.246.60.105 << EOF	
     #export DB_HOST=mongodb://54.75.96.210:27017/posts
     sudo apt-get update -y
@@ -220,7 +221,7 @@ ssh -A -o "StrictHostKeyChecking=no" ubuntu@54.246.60.105 << EOF
     
     #pm2 kill all
 EOF
-
+```
 
 #Create a another job for db 
 ```
