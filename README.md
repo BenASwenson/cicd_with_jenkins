@@ -234,6 +234,6 @@ ssh -o "StrictHostKeyChecking=no" ubuntu@ip <<EOF
     #pm2 start app.js
 EOF 
 ```
-test Jenkins
+
 
 
