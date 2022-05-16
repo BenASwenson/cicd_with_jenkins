@@ -187,6 +187,7 @@
   - Choose the GitHub settings again (Discard old builds)
   - For branch, choose `*/dev`
   - Go to `Additional Behaviours`, and add `origin` for 'Name of repository', and add `main` as 'Branch to merge to'
+  - Under 'Build Triggers' select `GitHub hook trigger for GITScm polling`
   - For 'Post-Build Actions', choose `projects to build` and select `eng110-bens-cd`
   - Under 'Post-Build-Actions' choose `Git Publisher`
     - select `Push only if build succeeds` and `merge results`
@@ -199,11 +200,38 @@
  - Restrict where this project can be run and enter `sparta-ubuntu-node`
  - SSH Agent: select the private key to unlock the EC2 instance's public key
  - Under `Execute shell` build with the following commands:
-   - `sudo ssh -A -o "StrictHostKeyChecking=no" ubuntu@ec2-ip << EOF`
-   - `sudo apt-get update -y`
-   - `sudo apt-get upgrade -y`
-   - `sudo apt-get install nginx -y`
-   - `sudo systemctl start nginx`
-   - `sudo systemctl enable nginx`
- - now test pipe
+#ssh into ec2
+#update upgrade, run the provisioning script or install nginx to test
+#scp to copy data from github to ec2
+```
+ssh -A -o "StrictHostKeyChecking=no" ubuntu@54.246.60.105 << EOF	
+    #export DB_HOST=mongodb://54.75.96.210:27017/posts
+    sudo apt-get update -y
+    sudo apt-get upgrade -y
+    sudo apt-get install nginx -y
+    sudo systemctl restart nginx 
+    sudo systemctl enable nginx
+    scp -
+    cd folder/env/app/
+    sudo chmod +x provision.sh
+    sudo /.provision.sh
+    cd app
+    npm install 
+    npm start
+    
+    #pm2 kill all
+EOF
+```
+
+#Create a another job for db 
+```
+# rsync -avz -e "ssh -o StrictHostKeyChecking=no" app ubuntu@ip:/home/ubuntu
+rsync -avz -e "ssh -o StrictHostKeyChecking=no" environment ubuntu@ip:/home/ubuntu
+ssh -o "StrictHostKeyChecking=no" ubuntu@ip <<EOF
+	sudo bash ./environment/provision.sh
+    #cd app
+    #pm2 kill
+    #pm2 start app.js
+EOF 
+```
  
