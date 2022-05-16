@@ -201,20 +201,14 @@
  - Create job 3 to clone the code from the main branch and deliver it to AWS EC2 to configure the node app
  - name: eng110-bens-cd
  - link GitHub as in previous two jobs (select `Discard old builds` and add `3` for max)
-<<<<<<< HEAD
-=======
  - Restrict where this project can be run and enter `sparta-ubuntu-node`
->>>>>>> main
  - SSH Agent: select the private key to unlock the EC2 instance's public key
  - Under `Execute shell` build with the following commands:
 #ssh into ec2
 #update upgrade, run the provisioning script or install nginx to test
 #scp to copy data from github to ec2
 ```
-<<<<<<< HEAD
 rsync -avz -e "ssh -o StrictHostKeyChecking=no" app ec2-54-75-45-88.eu-west-1.compute.amazonaws.com:~/.
-=======
->>>>>>> main
 ssh -A -o "StrictHostKeyChecking=no" ubuntu@54.246.60.105 << EOF	
     #export DB_HOST=mongodb://54.75.96.210:27017/posts
     sudo apt-get update -y
@@ -233,7 +227,6 @@ ssh -A -o "StrictHostKeyChecking=no" ubuntu@54.246.60.105 << EOF
     #pm2 kill all
 EOF
 ```
-<<<<<<< HEAD
 
 #Create a another job for db 
 ```
@@ -249,19 +242,3 @@ EOF
 
 
 
-=======
-
-#Create a another job for db 
-```
-# rsync -avz -e "ssh -o StrictHostKeyChecking=no" app ubuntu@ip:/home/ubuntu
-rsync -avz -e "ssh -o StrictHostKeyChecking=no" environment ubuntu@ip:/home/ubuntu
-ssh -o "StrictHostKeyChecking=no" ubuntu@ip <<EOF
-	sudo bash ./environment/provision.sh
-    #cd app
-    #pm2 kill
-    #pm2 start app.js
-EOF 
-```
- 
-test ci
->>>>>>> main
