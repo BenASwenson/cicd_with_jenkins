@@ -42,7 +42,7 @@
   - Git Lab
 
 ### Building CI
-![diagram](JenkinsDiagram.png?raw=true "Jenkins CI")
+![diagram](JenkinsDiagram.png?raw=true "Jenkins")
 # create a ssh connection from our localhost to github
   - generate new ssh key pair on our localhost
     - with gitbash open as administrator, in our .ssh folder, enter the command: `ssh-keygen -t rsa -b 4096 -C "bswenson@globalsparta.com"`
@@ -60,7 +60,7 @@
  
 # Build first tests in Jenkins
 
-- sign in to Jenkins
+- sign in to Jenkins (this is an EC2 instance on AWS - by default runs on port 88)
   - provided url: http://18.135.28.156:8080/login?from=%2F
   - username: devopslondon
   - password: DevOpsAdmin
@@ -124,50 +124,8 @@
   - select 'Code' button dropdown menu and select `HTTPS` and copy
   - We now need to give this to Jenkins
 
-
-  - In jenkins, select `New Item`
-  - enter name: `bens-continuous-integration`
-  - select `Freestyle project`
-  - click `ok`
-  - add description: building CI with github & localhost using webhooks on github
-  - select checkbox `Discard old builds`
-  - enter `3` for 'Max # of builds to keep'
-  - select checkbox `GitHub project` 
-  - In 'Project url' enter the HTTPS url copied from GitHub
-  - Now we need to utilize the Agent Node and let the job know where to run this by putting some restrictions in place
-    - Under 'Office 365 Connector' select checkbox `Restrict where this project can be run`
-    - select the Agent Node name: `sparta-ubuntu-node` - (might need to press backspace and fiddle around with it until it recognises the label)
-  - Under 'Source Code Management' select the checkbox `Git`
-  - go back to GitHub repo where app is located and select the 'Code' button dropdown menu and choose `SSH` and copy 
-  - go back to Jenkins and paste this SSH into `Repository URL`
-  - go to .ssh folder and copy the private key
-  - go back to Jenkins and in 'Credentials' choose `jenkins`
-  - click `Add` button and choose `Jenkins`
-  - Under 'Kind' select in the dropdown menu `SSH Username with private key`
-  - in 'Username' name the key the same as the file: eng110-bens
-  - in 'Private Key' select checkbox `Enter directly`
-  - paste key into box
-  - click `Add`
-  - Once we've added the key we land back to the previous page and under 'Credentials' we can replace 'jenkins' in the dropdown menu with created private key
-  - Under 'Branch Specifier' change 'master' to `main`
-  - scroll down the page to 'Build Environment' and select checkbox `Provide Node & npm bin/ folder to PATH`
-    - 'NodeJS Installation', 'npmrc file' and 'Cache location' have all been allocated by Sparta
-  - under 'Build' select `Add build setup` and choose `Execute shell` from dropdown menu
-  - Now we need to run the tests in the app
-  - Within the app folder review what to expect from the various tests to familiarize 
-  - go back to Jenkins and under 'Build' in 'Execute shell' type the following commands:
-    - `cd app` (or cd starter-code/app just be sure to provide direct path)
-    - `npm install`
-    - `npm test`
-  - `Save`
-  - go back to dashboard
-  - locate job in list and select `Build new` from dropdown menu
-  - on the left hand side the job is running on the Agent Node
-  - back on the middle of the page click on the link of the job
-  - under 'Build History' select dropdown menu of job and select `console output`
-
 # Adding a GitHub webhook in your Jenkins Pipeline
-  - Edit our build and got to `configure`
+  - Edit our build and go to `configure`
   - Under `Build Triggers`, click `Github hook trigger for GITScm polling`.
   - go to project repository
   - go to `settings` in the right corner
@@ -180,68 +138,75 @@
 
 # CICD/CDE for Jenkins
 ![diagram](automation_server_jenkins.png?raw=true "Automation Server Jenkins")
-- Create a new jenkins item called bens_ci_merge
-- create a dev branch on our localhost/GitHub.
-- Git push the new change from the dev branch
-- When the tests pass, trigger the job to merge the code on dev branch to the main branch
-- Create job 3 to clone the code from the main branch and deliver it to AWS EC2 to configure the node app
-  - In order to do this, we can SSH into the EC2 instance from Jenkins to install our required dependencies
-  - navigate to the app folder
-    - run `npm install`
-    - run `nohup node app.js > /dev/null 2>&1 &`
-- Now the app will be available on the public ip of the EC2 instance
 
-# Job 1 - commit triggers job - runs testing
-- Name: `eng110-bens-CI`
-- select `Discard old builds` + choose `3` in 'Max # of builds to keep'
-- select `GitHub project` + link https repo location
-- select `Restrict where this project can be run` => `sparta-ubuntu-node`
-- select `Git` + link GitHub repo (SSH format)
-- select your private key to unlock the repo's public key
-- Change the branch to: `*/dev`
-- Select `GitHub hook trigger`
-- Select `Provide Node & npm bin/ folder to PATH`
-- Under `Build` select `Execute shell` and provide the following commands:
-  - `cd app`
-  - `npm install`
-  - `npm test`
-- Under `Add post-build action` choose `Build other projects`
-- add next project: `eng110-bens-CI-merge`
-- `save`
-
-# Job 2 - merged to main
-- Name: `eng110-bens-CI-merge`
-- select `Discard old builds` + choose `3` in 'Max # of builds to keep'
-- select `GitHub project` + link https repo location
-- select `Restrict where this project can be run` => `sparta-ubuntu-node`
-- select `Git` + link GitHub repo (SSH format)
-- select your private key to unlock the repo's public key
-- Change the branch to: `*/dev`
-- Choose `Additional Behaviours`
-  - Name of repository: `origin`
-  - Branch to merge to: `main`
-- Under 'Post-build Actions' select `Add post-build action` choose `Build other projects`
-  - add next project: `eng110-bens-cd`
-  - Again select `Add post-build action` choose `Git Publisher`
-    - Select `Push only if build succeeds` and `Merge results`
-    - `save`
-
-# Job 3 - CD to AWS EC2
-- Name: `eng110-bens-cd`
-- Link GitHub as in previous two jobs
-- Select `SSH Agent`
-  - choose the private key to unlock the EC2 instance's public key
-- Under 'Build' select `Execute shell` and run the commands:
-
-sudo ssh -A -o "StrictHostKeyChecking=no" ubuntu@ec2-ip << EOF
-
-sudo apt-get update -y
-
-sudo apt-get upgrade -y
-
-sudo apt-get install nginx -y
-
-sudo systemctl start nginx
-
-sudo systemctl enable nginx
+## Job 1 to automate tests
+  - Create a dev branch on our localhost/GitHub.
+  - In jenkins, select `New Item`
+  - enter name: `bens-continuous-integration`
+  - select `Freestyle project`
+  - click `ok`
+  - add description: building CI with github & localhost using webhooks on github
+  - select checkbox `Discard old builds`
+  - enter `3` for 'Max # of builds to keep'
+  - select checkbox `GitHub project` 
+  - In 'Project url' enter the HTTPS url copied from GitHub
+  - Now we need to utilize the Agent Node and let the job know where to run this by putting some restrictions in place
+   - Under 'Office 365 Connector' select checkbox `Restrict where this project can be run`
+   - select the Agent Node name: `sparta-ubuntu-node` - (might need to press backspace and fiddle around with it until it recognises the label)
+  - Under 'Source Code Management' select the checkbox `Git`
+  - go back to GitHub repo where app is located and select the 'Code' button dropdown menu and choose `SSH` and copy 
+  - go back to Jenkins and paste this SSH into `Repository URL`
+  - go to .ssh folder and copy the private key
+  - go back to Jenkins and in 'Credentials' choose `jenkins`
+  - click `Add` button and choose `Jenkins`
+  - Under 'Kind' select in the dropdown menu `SSH Username with private key`
+ - in 'Username' name the key the same as the file: eng110-bens
+ - in 'Private Key' select checkbox `Enter directly`
+ - paste key into box
+ - click `Add`
+ - Once we've added the key we land back to the previous page and under 'Credentials' we can replace 'jenkins' in the dropdown menu with created private key
+ - Under 'Branch Specifier' change 'master' to `dev`
+ - scroll down the page to 'Build Environment' and select checkbox `Provide Node & npm bin/ folder to PATH`
+   - 'NodeJS Installation', 'npmrc file' and 'Cache location' have all been allocated by Sparta
+ - under 'Build' select `Add build setup` and choose `Execute shell` from dropdown menu
+ - Now we need to run the tests in the app
+ - Within the app folder review what to expect from the various tests to familiarize 
+ - go back to Jenkins and under 'Build' in 'Execute shell' type the following commands:
+   - `cd app` (or cd starter-code/app just be sure to provide direct path)
+   - `npm install`
+   - `npm test`
+ - `Save`
+ - go back to dashboard
+ - locate job in list and select `Build new` from dropdown menu
+ - on the left hand side the job is running on the Agent Node
+ - back on the middle of the page click on the link of the job
+ - under 'Build History' select dropdown menu of job and select `console output`
+  
+## Job 2 to merge branches
+  - Create a new jenkins item called bens_ci_merge
+  - Choose the GitHub settings again (Discard old builds)
+  - For branch, choose `*/dev`
+  - Go to `Additional Behaviours`, and add `origin` for 'Name of repository', and add `main` as 'Branch to merge to'
+  - Under 'Build Triggers' select `GitHub hook trigger for GITScm polling`
+  - For 'Post-Build Actions', choose `projects to build` and select `eng110-bens-cd`
+  - Under 'Post-Build-Actions' choose `Git Publisher`
+    - select `Push only if build succeeds` and `merge results`
+  - `save`
+   
+## Job 3 to copy code to EC2 and install dependencies
+ - Create job 3 to clone the code from the main branch and deliver it to AWS EC2 to configure the node app
+ - name: eng110-bens-cd
+ - link GitHub as in previous two jobs (select `Discard old builds` and add `3` for max)
+ - Restrict where this project can be run and enter `sparta-ubuntu-node`
+ - SSH Agent: select the private key to unlock the EC2 instance's public key
+ - Under `Execute shell` build with the following commands:
+   - `sudo ssh -A -o "StrictHostKeyChecking=no" ubuntu@ec2-ip << EOF`
+   - `sudo apt-get update -y`
+   - `sudo apt-get upgrade -y`
+   - `sudo apt-get install nginx -y`
+   - `sudo systemctl start nginx`
+   - `sudo systemctl enable nginx`
+ - now test pipe
+ - test 
+ 
 
