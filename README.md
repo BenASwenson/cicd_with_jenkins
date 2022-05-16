@@ -235,4 +235,3 @@ ssh -o "StrictHostKeyChecking=no" ubuntu@ip <<EOF
 EOF 
 ```
  
-
