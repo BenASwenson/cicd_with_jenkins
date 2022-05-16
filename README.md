@@ -186,19 +186,66 @@
   - Create a new jenkins item called bens_ci_merge
   - Choose the GitHub settings again (Discard old builds)
   - For branch, choose `*/dev`
-<<<<<<< HEAD
   - Go to `Additional Behaviours`, choose `merge before build` and add `origin` for 'Name of repository', and add `main` as 'Branch to merge to'
-=======
-  - Go to `Additional Behaviours`, and add `origin` for 'Name of repository', and add `main` as 'Branch to merge to'
->>>>>>> main
   - Under 'Build Triggers' select `GitHub hook trigger for GITScm polling`
   - For 'Post-Build Actions', choose `projects to build` and select `eng110-bens-cd`
   - Under 'Post-Build-Actions' choose `Git Publisher`
     - select `Push only if build succeeds` and `merge results`
   - `save`
+
+## Job 3 to set up database
+  - create ec2 instance
+  - In security groups:
+    - make port 22 available on source Jenkins IP
+    - potentially make port 22 available for own IP for testing
+    - make port 8080 available on source 0.0.0.0/0
+    - make port 27017 available on source app ec2 public ip
+  - create new job on Jenkins
+  - Name: eng110_bens_db
+  - Description: database connection
+  - Select `Restrict where this project can be run`
+    - choose the slave: `sparta-ubuntu-node` 
+  - Skip the Github settings as the app instance communicates with the db instance
+  - Select `SSH Agent`
+    - choose the key set up for the Jenkins server (all students on each server use the same key)
+  - Under 'Build' `Add build step` choose `Execute shell`
+    - add the following commands:
+      ```
+      ssh -o "StrictHostKeyChecking=no" ubuntu@<db ip>
+
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv D68FA50FEA312927
+
+        echo "deb https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+
+        sudo apt-get install -y mongodb-org=3.2.20 mongodb-org-server=3.2.20 mongodb-org-shell=3.2.20 mongodb-org-mongos=3.2.20 mongodb-org-tools=3.2.20
+
+        sudo apt-get update -y
+
+        sudo apt-get upgrade -y
+
+        sudo chown ubuntu: /etc/.
+
+        sed '24d' /etc/mongod.conf -i
+
+        awk 'NR==24{print " bindIp: 0.0.0.0"}7' /etc/mongod.conf > change && mv change /etc/mongod.conf
+
+        sudo chown root: /etc/.
+
+        sudo systemctl restart mongod
+
+        sudo systemctl enable mongod
+
+        sudo systemctl status mongod
+
+      EOF
+      ```
+  - Under 'Post-build Actions' choose `Build other projects`
+    - select Job 4 (eng110-bens-cd)
+
+
    
-## Job 3 to copy code to EC2 and install dependencies
- - Create job 3 to clone the code from the main branch and deliver it to AWS EC2 to configure the node app
+## Job 4 to copy code to EC2 and install dependencies
+ - Create job 4 to clone the code from the main branch and deliver it to AWS EC2 to configure the node app
  - name: eng110-bens-cd
  - link GitHub as in previous two jobs (select `Discard old builds` and add `3` for max)
  - Restrict where this project can be run and enter `sparta-ubuntu-node`
@@ -208,38 +255,33 @@
 #update upgrade, run the provisioning script or install nginx to test
 #scp to copy data from github to ec2
 ```
-rsync -avz -e "ssh -o StrictHostKeyChecking=no" app ec2-54-75-45-88.eu-west-1.compute.amazonaws.com:~/.
-ssh -A -o "StrictHostKeyChecking=no" ubuntu@54.246.60.105 << EOF	
-    #export DB_HOST=mongodb://54.75.96.210:27017/posts
-    sudo apt-get update -y
-    sudo apt-get upgrade -y
-    sudo apt-get install nginx -y
-    sudo systemctl restart nginx 
-    sudo systemctl enable nginx
-    scp -
-    cd folder/env/app/
-    sudo chmod +x provision.sh
-    sudo /.provision.sh
-    cd app
-    npm install 
-    npm start
-    
-    #pm2 kill all
+rsync -avz -e "ssh -o StrictHostKeyChecking=no" app ec2-54-154-218-22.eu-west-1.compute.amazonaws.com:~/.
+ssh -A -o "StrictHostKeyChecking=no" ubuntu@ec2-54-154-218-22 << EOF
+  export DB_HOST=mongodb://<db ip>:27017/posts
+  sudo echo "export DB_HOST=mongodb://<db ip>:27017/posts"
+  source ~/.bashrc
+  source ~/.profile
+  sudo apt-get update -y
+  sudo apt-get upgrade -y
+  sudo apt-get install nginx -y
+  sudo systemctl restart nginx
+  sudo systemctl enable nginx
+  curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+  sudo apt-get install nodejs -y
+  sudo systemctl restart nginx
+  sudo systemctl enable nginx
+  sudo npm install
+  sudo npm install pm2 -g
+  killall npm
+  pm2 kill
+  node seeds/seed.js
+  nohup node app.js > /dev/null 2>&1 &
+  
 EOF
 ```
 
-#Create a another job for db 
-```
-# rsync -avz -e "ssh -o StrictHostKeyChecking=no" app ubuntu@ip:/home/ubuntu
-rsync -avz -e "ssh -o StrictHostKeyChecking=no" environment ubuntu@ip:/home/ubuntu
-ssh -o "StrictHostKeyChecking=no" ubuntu@ip <<EOF
-	sudo bash ./environment/provision.sh
-    #cd app
-    #pm2 kill
-    #pm2 start app.js
-EOF 
-```
 
 
-tests for jenkins more test test test more test again another last change more change
+
+
 
