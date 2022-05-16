@@ -218,7 +218,7 @@ ssh -A -o "StrictHostKeyChecking=no" ubuntu@54.246.60.105 << EOF
     npm install 
     npm start
     
-    # pm2 kill all
+    #pm2 kill all
 EOF
 
 
